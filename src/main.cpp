@@ -376,6 +376,8 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &input)
     cv::setIdentity(KF5.measurementNoiseCov, cv::Scalar(sigmaQ));
 
     // Process the point cloud
+    pcl::PointCloud<pcl::PointXYZ>::Ptr raw_cloud(
+        new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud(
         new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr clustered_cloud(
@@ -384,7 +386,17 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &input)
     pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(
         new pcl::search::KdTree<pcl::PointXYZ>);
 
-    pcl::fromROSMsg(*input, *input_cloud);
+    pcl::fromROSMsg(*input, *raw_cloud);
+
+    //std::cout << "Filtering..." << std::endl;
+    pcl::IndicesPtr indices(new pcl::Indices());
+    pcl::removeNaNFromPointCloud(*raw_cloud, *input_cloud, *indices);
+    input_cloud->is_dense = false;
+    //pcl::ExtractIndices<pcl::PointXYZ> extract;
+    //extract.setInputCloud(input_cloud);
+    //extract.setIndices(indices);
+    //extract.setNegative(true);
+    //extract.filter(*input_cloud);
 
     tree->setInputCloud(input_cloud);
 
@@ -394,6 +406,7 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &input)
     ec.setMinClusterSize(10);
     ec.setMaxClusterSize(600);
     ec.setSearchMethod(tree);
+
     ec.setInputCloud(input_cloud);
     /* Extract the clusters out of pc and save indices in cluster_indices.*/
     ec.extract(cluster_indices);
@@ -512,6 +525,8 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &input)
 
   else {
     // cout<<"ELSE firstFrame="<<firstFrame<<"\n";
+    pcl::PointCloud<pcl::PointXYZ>::Ptr raw_cloud(
+        new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud(
         new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr clustered_cloud(
@@ -520,7 +535,12 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &input)
     pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(
         new pcl::search::KdTree<pcl::PointXYZ>);
 
-    pcl::fromROSMsg(*input, *input_cloud);
+    pcl::fromROSMsg(*input, *raw_cloud);
+
+    //std::cout << "Filtering..." << std::endl;
+    pcl::IndicesPtr indices(new pcl::Indices());
+    pcl::removeNaNFromPointCloud(*raw_cloud, *input_cloud, *indices);
+    input_cloud->is_dense = false;
 
     tree->setInputCloud(input_cloud);
 
